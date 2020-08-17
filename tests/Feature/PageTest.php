@@ -20,3 +20,9 @@ class PageTest extends TestCase
         $response->assertStatus(200);
     }
 }
+
+// Para correr el test:
+// php vendor/phpunit/phpunit/phpunit
+
+// Para crear el test:
+// php artisan make:test PageTest
