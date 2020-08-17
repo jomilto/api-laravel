@@ -8,15 +8,29 @@ use Tests\TestCase;
 
 class PostControllerTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
-    public function testExample()
-    {
-        $response = $this->get('/');
+    use RefreshDatabase;
 
-        $response->assertStatus(200);
+    public function test_store()
+    {
+        $this->withoutExceptionHandling();
+        $response = $this->json('POST','/api/post', [
+            'title' => 'Post de Prueba'
+        ]);
+
+        $response->assertJsonStructure(['id','title','created_at','updated_at'])
+        ->assertJson(['title' => 'Post de Prueba'])
+        ->assertStatus(201); //Creando, Recurso
+
+        $this->assertDatabaseHas('posts',['title' => 'Post de Prueba']);
     }
 }
+
+
+// Para correr el test:
+// php vendor/phpunit/phpunit/phpunit
+// o con:
+// php artisan test
+// Recuerda descomentar de phpunit xml las dos lineas de base de datos
+
+// Para crear el test:
+// php artisan make:test PageTest
