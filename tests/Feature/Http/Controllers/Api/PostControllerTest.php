@@ -5,7 +5,7 @@ namespace Tests\Feature\Http\Controllers\Api;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-use App\Post;
+use App\{Post,User};
 
 class PostControllerTest extends TestCase
 {
@@ -14,7 +14,8 @@ class PostControllerTest extends TestCase
     public function test_store()
     {
         // $this->withoutExceptionHandling();
-        $response = $this->json('POST','/api/post', [
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user, 'api')->json('POST','/api/post', [
             'title' => 'Post de Prueba'
         ]);
 
@@ -27,7 +28,8 @@ class PostControllerTest extends TestCase
 
     public function test_validate_title()
     {
-        $response = $this->json('POST','/api/post', [
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user,'api')->json('POST','/api/post', [
             'title' => ''
         ]);
 
@@ -39,7 +41,8 @@ class PostControllerTest extends TestCase
     {
         $post = factory(Post::class)->create();
 
-        $response = $this->json('GET',"/api/post/$post->id");
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user,'api')->json('GET',"/api/post/$post->id");
 
         $response->assertJsonStructure(['id','title','created_at','updated_at'])
         ->assertJson(['title' => $post->title])
@@ -48,7 +51,8 @@ class PostControllerTest extends TestCase
 
     public function test_404_show()
     {
-        $response = $this->json('GET','/api/post/1000');
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user,'api')->json('GET','/api/post/1000');
 
         $response->assertStatus(404); //not found  
     }
@@ -57,7 +61,8 @@ class PostControllerTest extends TestCase
     {
         $update = factory(Post::class)->create();
 
-        $response = $this->json('PUT',"/api/post/$update->id", [
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user,'api')->json('PUT',"/api/post/$update->id", [
             'title' => 'Post de Prueba'
         ]);
 
@@ -72,7 +77,8 @@ class PostControllerTest extends TestCase
     {
         $delete = factory(Post::class)->create();
 
-        $response = $this->json('DELETE',"/api/post/$delete->id");
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user,'api')->json('DELETE',"/api/post/$delete->id");
 
         $response->assertSee(null)
         ->assertStatus(204); //Sin contenido
@@ -84,13 +90,23 @@ class PostControllerTest extends TestCase
     {
         factory(Post::class,5)->create();
 
-        $response = $this->json('GET',"/api/post");
+        $user = factory(User::class)->create();
+        $response = $this->actingAs($user,'api')->json('GET',"/api/post");
 
         $response->assertJsonStructure([
             'data' => [
                 '*' => ['id','title','created_at','updated_at']
             ]
         ])->assertStatus(200); //OK
+    }
+
+    public function test_guest()
+    {
+        $this->json('GET','/api/post')->assertStatus(401);
+        $this->json('POST','/api/post')->assertStatus(401);
+        $this->json('GET','/api/post/100')->assertStatus(401);
+        $this->json('PUT','/api/post/100')->assertStatus(401);
+        $this->json('DELETE','/api/post/100')->assertStatus(401);
     }
 }
 

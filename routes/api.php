@@ -18,4 +18,5 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // });
 
-Route::apiResource('post','Api\PostController');
+Route::apiResource('post','Api\PostController')
+        ->middleware('auth:api');
