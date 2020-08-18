@@ -63,9 +63,21 @@ class PostControllerTest extends TestCase
 
         $response->assertJsonStructure(['id','title','created_at','updated_at'])
         ->assertJson(['title' => 'Post de Prueba'])
-        ->assertStatus(200); //Creando, Recurso
+        ->assertStatus(200); //OK
 
         $this->assertDatabaseHas('posts',['title' => 'Post de Prueba']);
+    }
+
+    public function test_delete()
+    {
+        $delete = factory(Post::class)->create();
+
+        $response = $this->json('DELETE',"/api/post/$delete->id");
+
+        $response->assertSee(null)
+        ->assertStatus(204); //Sin contenido
+
+        $this->assertDatabaseMissing('posts',['id' => $post->id]);
     }
 }
 
